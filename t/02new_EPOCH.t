@@ -9,8 +9,8 @@ BEGIN {
 
 my $iso;
 
-my $date = timelocal(0,0,0,25,9,1971);
-$iso = Date::ISO->new( epoch => $date );
+my $date = timegm(0,0,0,25,9,1971);
+$iso = Date::ISO->new( epoch => $date, offset => 0 );
 is( $iso->offset, 0, "Offset?");
 
 is( $iso->year, 1971, 'year()' );
@@ -21,8 +21,8 @@ is( $iso->iso_year, 1971, 'iso_year()' );
 is( $iso->iso_week, 43, 'iso_week()' );
 is( $iso->iso_week_day, 1, 'iso_week_day()' );
 
-$date = timelocal(0,0,0,28,3,2001);
-$iso = Date::ISO->new( epoch => $date );
+$date = timegm(0,0,0,28,3,2001);
+$iso = Date::ISO->new( epoch => $date, offset => 0 );
 is( $iso->offset, 0, "Offset?");
 
 is( $iso->year, 2001, 'year()');

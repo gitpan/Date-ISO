@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.26 2001/11/28 22:36:42 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.27 2001/11/29 18:03:16 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.26 $')[1];
+$VERSION = (qw'$Revision: 1.27 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -81,13 +81,15 @@ Time values are not supported at this time.
 
 # }}}
 
-sub new {    #{{{
+# sub new {{{
+
+sub new {
     my $class = shift;
     my %args  = @_;
     my $offset = $args{offset} || 0;
     my $self;
 
-# Deprecated argument form {{{
+    # Deprecated argument form {{{
     if (defined $args{ISO}) {
         $args{iso} = $args{ISO};
         warn "'ISO' is a deprecated arg. Use 'iso' instead.";
@@ -137,7 +139,7 @@ sub new {    #{{{
 
     # Otherwise, just pass arguments to Date::ICal
     else {
-        $self = $class->SUPER::new( %args );
+        $self = $class->SUPER::new( %args, offset => $offset );
     }
 
     bless $self, $class;
@@ -315,7 +317,7 @@ sub iso {
     } else {
         my ($year, $month, $day) = @_;
         my $self = Date::ISO->new( year => $year, month => $month, 
-                                day => $day );
+                                day => $day, offset=>0 );
         return ( $self->iso_year, $self->iso_week,
             $self->iso_week_day);
     }
@@ -380,7 +382,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/11/28 22:36:42 $
+$Date: 2001/11/29 18:03:16 $
 
 =head1 Additional comments
 
@@ -423,6 +425,11 @@ back what we started with. I'm not at all sure what is going on.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.27  2001/11/29 18:03:16  rbowen
+    If offsets are not specified, use GMT. This fixes a problem that has
+    been in the last several releases. Need to add additional tests to test
+    in the system's local time zone.
+
     Revision 1.26  2001/11/28 22:36:42  rbowen
     Jesse's patch to make offsets work as passed in, rather than setting to
     0.
