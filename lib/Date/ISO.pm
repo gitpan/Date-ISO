@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.21 2001/09/12 03:21:31 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.22 2001/11/24 16:03:11 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.21 $')[1];
+$VERSION = (qw'$Revision: 1.22 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -138,7 +138,7 @@ sub new {    #{{{
     return $self;
 }    #}}}
 
-# Pod::Tests inline tests #{{{
+# Test::Inline tests #{{{
 
 =begin testing
 
@@ -149,6 +149,7 @@ my $t1 = Date::ISO->new( day => 25, month => 10, year => 1971 );
 is($t1->day, 25, 'day()');
 is($t1->month, 10, 'month()');
 is($t1->year, 1971, 'year()');
+$t1->offset(0);
 is($t1->ical, '19711025Z', 'ical()');
 is($t1->epoch, 57196800, 'epoch()');
 
@@ -338,6 +339,7 @@ sub iso_day{iso_week_day(@_)}
 
 my $t3 = Date::ISO->new( iso => '1973-W12-4' );
 is( $t3->iso, '1973-W12-4', 'Return the ISO string we started with');
+$t3->offset(0);
 is ( $t3->ical, '19730322Z', 'ical()');
 $t3->add( week => 2 );
 is( $t3->ical, '19730405Z', 'ical()');
@@ -370,7 +372,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/09/12 03:21:31 $
+$Date: 2001/11/24 16:03:11 $
 
 =head1 Additional comments
 
@@ -409,6 +411,10 @@ back what we started with. I'm not at all sure what is going on.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.22  2001/11/24 16:03:11  rbowen
+    Offsets must be explicitly set to 0 in order to get the right epoch
+    time. See Date::ICal for details
+
     Revision 1.21  2001/09/12 03:21:31  rbowen
     remove warnings for 5.005 compatibility
 

@@ -7,9 +7,9 @@ WriteMakefile(
   'VERSION_FROM' => 'lib/Date/ISO.pm',      # finds $VERSION
   'PREREQ_PM'    => {
       'Date::Leapyear' => 0,
-      'Date::ICal'     => 0,
-      'Pod::Tests'     => 0,
+      'Date::ICal'     => '1.53',
       'Test::More'     => 0,
+      'Test::Inline'     => 0,
   },
 );
 
