@@ -87,7 +87,7 @@ AUTHOR
     Rich Bowen (rbowen@rcbowen.com)
 
 DATE
-    $Date: 2001/04/29 21:33:09 $
+    $Date: 2001/05/01 23:15:45 $
 
 Additional comments
     For more information about this calendar, please see:
@@ -110,7 +110,10 @@ To Do
     strings, from a Date::ISO object.
 
 Version History
-        $ Log: ISO.pm,v $
+        
+        Revision 1.17  2001/04/30 13:23:35  rbowen
+        Removed AutoLoader from ISA, since it really isn't.
+
         Revision 1.16  2001/04/29 21:31:04  rbowen
         Added new tests, and fixed a lot of bugs in the process. Apparently the
         inverseiso function had never actually worked, and various other functions
@@ -124,5 +127,4 @@ Version History
         Revision 1.14  2001/04/29 02:36:50  rbowen
         Added OO interface.
         Changed functions to accept 4-digit years and 1-based months.
-        Moved to CVS version as the release version.
 

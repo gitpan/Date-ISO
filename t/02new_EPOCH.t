@@ -5,10 +5,12 @@ use Test;
 BEGIN { plan tests => 12 }
 
 use Date::ISO;
+use Time::Local;
 
 my $iso;
 
-$iso = Date::ISO->new( EPOCH => '57211200' );
+my $date = timelocal(0,0,0,25,9,1971);
+$iso = Date::ISO->new( EPOCH => $date );
 
 ok( $iso->year, 1971 );
 ok( $iso->month, 10 );
@@ -18,7 +20,8 @@ ok( $iso->iso_year, 1971 );
 ok( $iso->iso_week, 43 );
 ok( $iso->iso_week_day, 1 );
 
-$iso = Date::ISO->new( EPOCH => '988511697' );
+$date = timelocal(0,0,0,28,3,2001);
+$iso = Date::ISO->new( EPOCH => $date );
 
 ok( $iso->year, 2001);
 ok( $iso->month, 4 );

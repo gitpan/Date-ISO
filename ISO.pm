@@ -3,9 +3,9 @@ package Date::ISO;
 use strict;
 use vars qw( $VERSION @ISA @EXPORT );
 require Exporter;
-@ISA = qw(Exporter AutoLoader);
+@ISA = qw(Exporter);
 @EXPORT = qw( localiso iso inverseiso);
-$VERSION = (qw'$Revision: 1.16 $')[1];
+$VERSION = (qw'$Revision: 1.17 $')[1];
 
 =head1 NAME
 
@@ -312,7 +312,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/04/29 21:31:04 $
+$Date: 2001/04/30 13:23:35 $
 
 =head1 Additional comments
 
@@ -339,6 +339,9 @@ from a Date::ISO object.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.17  2001/04/30 13:23:35  rbowen
+    Removed AutoLoader from ISA, since it really isn't.
+
     Revision 1.16  2001/04/29 21:31:04  rbowen
     Added new tests, and fixed a lot of bugs in the process. Apparently the
     inverseiso function had never actually worked, and various other functions
