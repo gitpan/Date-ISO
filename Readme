@@ -1,0 +1,35 @@
+NAME
+    Date::ISO - Perl extension for converting dates between ISO and
+    Gregorian formats.
+
+SYNOPSIS
+      use Date::ISO;
+      ($yearnumber, $weeknumber, $weekday) = iso($year, $month, $day);
+
+DESCRIPTION
+    Convert dates between ISO and Gregorian formats.
+
+  iso
+
+            ($year, $week, $day) = iso($year, $month, $day);
+
+    Returns the ISO year, week and day, when given the year, month, and day,
+    as returned by localtime. (That is, months are zero-based, years are
+    -1900.)
+
+  localiso
+
+            ($year, $week, $day) = localiso(time);
+
+    Given a time value (epoch time) returns the ISO year, week, and day.
+
+AUTHOR
+    Rich Bowen <rbowen@rcbowen.com>
+
+Additional comments
+    For more information about this calendar, please see:
+
+    http://personal.ecu.edu/mccartyr/ISOwdALG.txt
+
+    http://personal.ecu.edu/mccartyr/isowdcal.html
+

@@ -5,7 +5,7 @@ use vars qw( $VERSION @ISA @EXPORT );
 require Exporter;
 @ISA = qw(Exporter AutoLoader);
 @EXPORT = qw( localiso iso inverseiso);
-$VERSION = '1.0';
+$VERSION = '1.01';
 
 =head1 NAME
 
@@ -91,16 +91,18 @@ sub inverseiso	{
 
 }
 
-# =head2 localiso
-# 
-# 	($year, $week, $day) = localiso(time);
-# 
-# Given a time value (epoch time) returns the ISO year, week, and day.
-# 
-# =cut
+=head2 localiso
+
+	($year, $week, $day) = localiso(time);
+
+Given a time value (epoch time) returns the ISO year, week, and day.
+
+=cut
 
 sub localiso	{
-
+	my ($datetime) = @_;
+	my ($year, $month, $day) = (localtime($datetime))[5,4,3];
+	return iso($year, $month, $day);
 }
 
 sub isleap	{
@@ -120,10 +122,6 @@ __END__
 Rich Bowen <rbowen@rcbowen.com>
 
 =head1 Additional comments
-
-Please don't trust this API to stay the same. I think it will, but I'm 
-not sure yet. Especially, I'd like comments about whether the month value
-should be zero-based, or 1 based. That is, should January be 0 or 1?
 
 For more information about this calendar, please see:
 
