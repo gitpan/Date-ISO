@@ -5,6 +5,7 @@ NAME
 SYNOPSIS
       use Date::ISO;
       ($yearnumber, $weeknumber, $weekday) = iso($year, $month, $day);
+      ($yearnumber, $weeknumber, $weekday) = localiso(time);
 
 DESCRIPTION
     Convert dates between ISO and Gregorian formats.
@@ -16,6 +17,13 @@ DESCRIPTION
     Returns the ISO year, week and day, when given the year, month, and day,
     as returned by localtime. (That is, months are zero-based, years are
     -1900.)
+
+  inverseiso
+
+            ($year, $month, $day) = inverse_iso($year, $week, $day);
+
+    Given an ISO year, week, and day, returns year, month, and day, as
+    localtime would give them to you.
 
   localiso
 

@@ -5,7 +5,7 @@ use vars qw( $VERSION @ISA @EXPORT );
 require Exporter;
 @ISA = qw(Exporter AutoLoader);
 @EXPORT = qw( localiso iso inverseiso);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 =head1 NAME
 
@@ -16,6 +16,7 @@ Gregorian formats.
 
   use Date::ISO;
   ($yearnumber, $weeknumber, $weekday) = iso($year, $month, $day);
+  ($yearnumber, $weeknumber, $weekday) = localiso(time);
 
 =head1 DESCRIPTION
 
@@ -74,21 +75,66 @@ sub iso	{
 			$weeknumber--;
 		}
 	}
-	$weeknumber = sprintf('%02d',$weeknumber);
 	return ($yearnumber, $weeknumber, $weekday);
 }
 		
-# =head2 inverseiso
-# 
-# 	($year, $month, $day) = inverse_iso($year, $week, $day);
-# 
-# Given an ISO year, week, and day, returns year, month, and day, as
-# localtime would give them to you.
-# 
-# =cut
+=head2 inverseiso
+
+	($year, $month, $day) = inverse_iso($year, $week, $day);
+
+Given an ISO year, week, and day, returns year, month, and day, as
+localtime would give them to you.
+
+=cut
 
 sub inverseiso	{
-
+	my ($yearnumber, $weeknumber, $weekday) = @_;
+	my ($yy, $c, $g, $janone, $eoy,
+		$year, $month, $day, $doy,
+		);
+	$yy = ($year - 1) % 100;
+	$c = ($year - 1) - $yy;
+	$g = $yy + int($yy / 4);
+	$janone = 1 + (((( int($c / 100) % 4) * 5) + $g) % 7);
+	if (($weeknumber == 1) && ($janone < 5) && ($weekday < $janone))	{
+		$year = $yearnumber - 1;
+		$month = 12;
+		$day = 32 - ($janone - $weekday);
+	} else {
+		$year = $yearnumber;
+	}
+	$doy = ($weeknumber - 1) * 7;
+	if ($janone < 5)	{
+		$doy += $weekday - ($janone - 1);
+	} else {
+		$doy += $weekday + (8 - $janone);
+	}
+	if (isleap($yearnumber - 1900))	{
+		$eoy = 366;
+	} else {
+		$eoy = 365;
+	}
+	if ($doy > $eoy)	{
+		$year = $yearnumber + 1;
+		$month = 1;
+		$day = $doy - $eoy;
+	} else {
+		$year = $yearnumber;
+	}
+	if ($year == $yearnumber)	{
+		my @month = (31, 28, 31, 30, 31,30, 31, 31, 30, 31, 30, 31);
+		$month[1] = 29 if (isleap($year - 1900));
+		my $h = 0;
+		$month=0;
+		for my $days (@month)	{
+			last if $h > $doy;
+			$h += $days;
+			$month++;
+		}
+		$month--;
+		$day = $doy - ($h - $month[$month]);
+	}
+	return ($year, $month, $day);
 }
 
 =head2 localiso
@@ -101,6 +147,7 @@ Given a time value (epoch time) returns the ISO year, week, and day.
 
 sub localiso	{
 	my ($datetime) = @_;
+	$datetime ||= time;
 	my ($year, $month, $day) = (localtime($datetime))[5,4,3];
 	return iso($year, $month, $day);
 }
