@@ -1,281 +1,397 @@
 package Date::ISO;
 
-require v5.6;
 use strict;
-use warnings;
-our $VERSION = sprintf('%d.%02d', q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+use vars qw( $VERSION @ISA @EXPORT );
+require Exporter;
+use Date::Leapyear qw();
+use Date::ICal;
 
-use Carp;
-use overload
-    '+='  => '_increment',
-    '-='  => '_decrement',
-    '+'   => '_add',
-    '-'   => '_subtract',
-    '<=>' => '_compare',
-    'cmp' => '_compare',
-    '""'  => '_stringify';
+@ISA     = qw(Exporter Date::ICal);
+@EXPORT  = qw( localiso iso inverseiso );
+$VERSION = (qw'$Revision: 1.18 $')[1];
 
-use POSIX qw(strftime mktime);
+=head1 NAME
 
-sub new {
-    my $that = shift;
-    my $class = ref($that) || $that;
-    my $self;
-    if (@_ == 0) {
-        $self = \time;
-    } else {
-        my ($y,$m,$d);
-        if (@_ == 1) {
-            ($y,$m,$d) = $_[0] =~ /^(\d{4})-(\d{2})-(\d{2})$/
-                or croak "'$_[0]' is not a valid ISO date";
-        } elsif (@_ == 3) {
-            ($y,$m,$d) = @_;
-        } else {
-            croak "please read the documentation";
+Date::ISO - Perl extension for converting dates between ISO and
+Gregorian formats.
+
+=head1 SYNOPSIS
+
+  use Date::ISO;
+  ($yearnumber, $weeknumber, $weekday) = iso($year, $month, $day);
+
+Note that year and month here are as given by localtime, not as given by a
+calendar. Hence, January 1, 2001 is (101, 0, 1). This is probably undesired
+behavior, and may be changed in a future release.
+
+  ($yearnumber, $weeknumber, $weekday) = localiso(time);
+  ($year, $month, $day) = inverseiso($iso_year, $iso_week, $iso_week_day);
+
+Or, using the object interface:
+
+  use Date::ISO qw();
+  my $iso = Date::ISO->new( ISO => $iso_date_string );
+
+  $iso_year = $iso->iso_year;
+  $year = $iso->year;
+
+  $iso_week = $iso->iso_week;
+  $week_day = $iso->iso_week_day;
+
+  $month = $iso->month;
+  $day = $iso->day;
+
+=head1 DESCRIPTION
+
+Convert dates between ISO and Gregorian formats.
+
+
+=head2 iso
+
+	($year, $week, $day) = iso($year, $month, $day);
+    ($year, $week, $day) = iso(2001, 4, 28); # April 28, 2001
+
+Returns the ISO year, week, and day of week, when given the (Gregorian)
+year, month, and day.
+
+Note that years are full 4 digit years, and months are numbered with January
+being 1. 
+
+=cut
+
+sub iso {    #{{{
+    my ( $year, $month, $day ) = @_;
+    my ( $doy, $yy, $c, $g, $janone, $h, $weekday, $yearnumber, $weeknumber, $i,
+      $j, $leap, $lastleap, );
+
+    $month--;    # It is convenient to have months 0-based internally
+    $day += 0;
+
+    my %doy = (
+      0  => 0,
+      1  => 31,
+      2  => 59,
+      3  => 90,
+      4  => 120,
+      5  => 151,
+      6  => 181,
+      7  => 212,
+      8  => 243,
+      9  => 273,
+      10 => 304,
+      11 => 334
+    );
+    $doy      = $doy{$month} + $day;
+    $leap     = Date::Leapyear::isleap($year);
+    $lastleap = Date::Leapyear::isleap( $year - 1 );
+    $doy++ if ( $leap && $month > 1 );
+    $yy      = ( $year - 1 ) % 100;
+    $c       = ( $year - 1 ) - $yy;
+    $g       = $yy + int( $yy / 4 );
+    $janone  = 1 + ( ( ( ( ( int( $c / 100 ) ) % 4 ) * 5 ) + $g ) % 7 );
+    $h       = $doy + ( $janone - 1 );
+    $weekday = 1 + ( ( $h - 1 ) % 7 );
+    $i       = $leap ? 366 : 365;
+
+    # Is it really the last week of last year?
+    if ( ( $doy <= ( 8 - $janone ) ) && ( $janone > 4 ) ) {
+        $yearnumber = $year - 1;
+        if ( $janone == 5 || ( $janone == 6 && $lastleap ) ) {
+            $weeknumber = 53;
+          } else {
+            $weeknumber = 52;
         }
-        return undef unless validate($y, $m, $d);
-        $y -= 1900;
-        $m -= 1;
-        $self = \mktime 0, 0, 12, $d, $m, $y;
     }
-    bless $self, $class;
-    return $self;
-}
 
-sub next { return $_[0] + 1 }
-sub prev { return $_[0] + 1 }
+    # Is it really the first week of next year?
+    elsif ( ( $i - $doy ) < ( 4 - $weekday ) ) {
+        $yearnumber = $year + 1;
+        $weeknumber = 1;
+      } else {
+        $yearnumber = $year;
+        $j = $doy + ( 7 - $weekday ) + ( $janone - 1 );
+        $weeknumber = int( $j / 7 );
 
-# return a copy of self
-sub _copy {
-    my $self = shift;
-    my $copy = \$$self;
-    bless $copy, ref $self;
-    return $copy;
-}
-
-sub leap_year {
-    my $y = shift;
-    return (($y%4==0) and ($y%400==0 or $y%100!=0)) || 0;
-}
-
-my @days_in_month = (
- [0,31,28,31,30,31,30,31,31,30,31,30,31],
- [0,31,29,31,30,31,30,31,31,30,31,30,31],
-);
-
-sub days_in_month {
-    my ($y,$m) = @_;
-    return $days_in_month[leap_year($y)][$m];
-}
-
-sub validate {
-    my ($y, $m, $d)= @_;
-    # any +ve integral year is valid
-    return 0 if $y != abs int $y;
-    return 0 unless 1 <= $m and $m <= 12;
-    return 0 unless 1 <= $d and $d <= $days_in_month[leap_year($y)][$m];
-    return 1;
-}
-    
-sub year  { return (localtime ${$_[0]})[5] + 1900 }
-sub month { return (localtime ${$_[0]})[4] + 1    }
-sub day   { return (localtime ${$_[0]})[3]        }
-
-sub format {
-    my $self = shift;
-    my $format = shift || '%Y-%m-%d';
-    return strftime $format, localtime $$self;
-}
-
-#------------------------------------------------------------------------------
-# the following methods are called by the overloaded operators, so they should
-# not normally be called directly.
-#------------------------------------------------------------------------------
-sub _stringify { $_[0]->format }
-
-sub _increment {
-    my ($self, $n) = @_;
-    $$self += $n*86400;
-    return $self;
-}
-
-sub _decrement {
-    my ($self, $n) = @_;
-    $$self -= $n*86400;
-    return $self;
-}
-
-sub _add {
-    my ($self, $n, $reverse) = @_;
-    my $copy = $self->_copy;
-    $copy += $n;
-    return $copy;
-}
-
-sub _subtract {
-    my ($self, $n, $reverse) = @_;
-    if (ref $n and $n->isa('Date::ISO')) {
-        my $diff = $$self - $$n;
-        $diff /= 86400;
-        return $reverse ? -$diff : $diff;
-    } else {
-        my $copy = $self->_copy;
-        $copy -= $n;
-        return $copy;
+        if ( $janone > 4 ) {
+            $weeknumber--;
+        }
     }
-}
+    return ( $yearnumber, $weeknumber, $weekday );
 
-sub _compare { return int(${$_[0]}/86400) <=> int(${$_[1]}/86400) }
+    # The ISO year day is apparently $doy - $janone + 1, but I'm not certain.
+    # I'll have to think about this a little more.
+}    #}}}
+
+=head2 inverseiso
+
+	($year, $month, $day) = inverseiso($year, $week, $day);
+
+Given an ISO year, week, and day, returns year, month, and day, as
+localtime would give them to you.
+
+=cut
+
+sub inverseiso {    #{{{
+    my ( $yearnumber, $weeknumber, $weekday ) = @_;
+    my ( $yy, $c, $g, $janone, $eoy, $year, $month, $day, $doy, );
+    $yy     = ( $yearnumber - 1 ) % 100;
+    $c      = ( $yearnumber - 1 ) - $yy;
+    $g      = $yy + int( $yy / 4 );
+    $janone = 1 + ( ( ( ( int( $c / 100 ) % 4 ) * 5 ) + $g ) % 7 );
+    if ( ( $weeknumber == 1 ) && ( $janone < 5 ) && ( $weekday < $janone ) ) {
+        $year  = $yearnumber - 1;
+        $month = 12;
+        $day   = 32 - ( $janone - $weekday );
+      } else {
+        $year = $yearnumber;
+    }
+    $doy = ( $weeknumber - 1 ) * 7;
+
+    if ( $janone < 5 ) {
+        $doy += $weekday - ( $janone - 1 );
+      } else {
+        $doy += $weekday + ( 8 - $janone );
+    }
+
+    if ( Date::Leapyear::isleap($yearnumber) ) {
+        $eoy = 366;
+      } else {
+        $eoy = 365;
+    }
+
+    if ( $doy > $eoy ) {
+        $year  = $yearnumber + 1;
+        $month = 1;
+        $day   = $doy - $eoy;
+      } else {
+        $year = $yearnumber;
+    }
+
+    if ( $year == $yearnumber ) {
+        my @month = ( 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 );
+        $month[1] = 29 if ( Date::Leapyear::isleap($year) );
+        my $h = 0;
+        $month = 0;
+        for my $days(@month) {
+            last if $h > $doy;
+            $h += $days;
+            $month++;
+        }
+
+        # $month--;
+        $day = $doy - ( $h - $month[$month] ) + 1;
+    }
+
+    return ( $year, $month, $day );
+}    #}}}
+
+=head2 localiso
+
+	($year, $week, $day) = localiso(time);
+
+Given a time value (epoch time) returns the ISO year, week, and day.
+
+=cut
+
+sub localiso {    #{{{
+    my ($datetime) = @_;
+    $datetime ||= time;
+    my ( $day, $month, $year ) = ( localtime($datetime) )[ 3, 4, 5 ];
+    return iso( $year + 1900, $month + 1, $day );
+}    #}}}
+
+=head1 OO interface
+
+The OO interface allows you to create a date object, and determime from it the
+various attributes in the ISO calendar (the year, week, and day of that week)
+and in the Gregorian reckoning (the year, month, and day).
+
+=head2 new
+
+    my $iso = Date::ISO->new( ISO => $iso_date_string );
+
+or ...
+
+    my $iso = Date::ISO->new( EPOCH = $epoch_time );
+
+Accepted ISO date string formats are:
+
+    1997-02-05 (Feb 5, 1997)
+    19970205 (Same)
+    199702 (February 1997)
+    1997-W06 (6th week, 1997)
+    1997W06 (Same)
+    1997-W06-2 (6th week, 2nd day)
+    1997W062 (Same as above)
+    1997-035 (35th day of 1997)
+    1997035 (Same as above)
+
+2-digit representations of the year are not supported at this time.
+
+Time values are not supported at this time.
+
+=cut
+
+sub new {    #{{{
+    my $class = shift;
+    my %args  = @_;
+
+    my %date;
+
+    # ISO date string passed in?
+    if ( $args{ISO} ) {
+
+        # 1997-02-05 or 19970205 formats
+        if ( $args{ISO} =~ m/^(\d\d\d\d)-?(\d\d)-?(\d\d$)/ ) {
+
+            @date{ 'year', 'month', 'day' } = ( $1, $2, $3 );
+
+            @date{ '_iso_year', '_iso_week', '_iso_week_day' } =
+              iso( $date{year}, $date{month}, $date{day} );
+
+            # 199702 format
+          } elsif ( $args{ISO} =~ m/^(\d\d\d\d)(\d\d)$/ )
+        {
+            @date{ 'year', 'month' } = ( $1, $2 );
+            $date{day} = 1;
+
+            @date{ '_iso_year', '_iso_week', '_iso_week_day' } =
+              iso( $date{year}, $date{month}, 1 );
+
+            # 1997-W06-2 or 1997W062 format
+          } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?W(\d\d)-?(\d)$/ )
+        {
+            @date{ '_iso_year', '_iso_week', '_iso_week_day' } = ( $1, $2, $3 );
+
+            @date{ 'year', 'month', 'day' } =
+              inverseiso( $date{_iso_year}, $date{_iso_week},
+              $date{_iso_week_day} );
+
+            # 1997-W06 or 1997W06 format
+          } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?W(\d\d)$/ )
+        {
+            @date{ '_iso_year', '_iso_week' } = ( $1, $2 );
+            $date{_iso_week_day} = 1;
+
+            @date{ 'year', 'month', 'day' } =
+              inverseiso( $date{_iso_year}, $date{_iso_week}, 1 );
+
+            # 1997-035 or 1997035 format
+          } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?(\d\d\d)$/ )
+        {
+
+            $date{_iso_year}     = $1;
+            $date{_iso_week}     = int( $2 / 7 ) + 1;
+            $date{_iso_week_day} = ( $2 % 7 ) + 1;
+
+            @date{ 'year', 'month', 'day' } =
+              inverseiso( $date{_iso_year}, $date{_iso_week},
+              $date{_iso_week_day} );
+
+            # Don't know what the format was
+          } else {
+            warn('Did not recognize this as valid ISO date string format');
+        }
+
+      } elsif ( $args{EPOCH} )
+    {
+
+        @date{ 'day', 'month', 'year' } =
+          ( localtime( $args{EPOCH} ) )[ 3, 4, 5 ];
+        $date{month}++;
+        $date{year} += 1900;
+
+        @date{ '_iso_year', '_iso_week', '_iso_week_day' } =
+          localiso( $args{EPOCH} );
+
+      } else {
+        warn('Dude. Read the docs. Sheesh.');
+    }
+
+    my $self = bless \%date, $class;
+
+    # Get an internal ICal represenatation
+    $self->_format_ical;
+
+    return $self;
+}    #}}}
+
+# Attribute acessor methods#{{{
+
+sub iso_year     { $_[0]->{_iso_year} }
+sub iso_week     { $_[0]->{_iso_week} }
+sub iso_week_day { $_[0]->{_iso_week_day} }
+
+sub day   { $_[0]->{day} }
+sub month { $_[0]->{month} }
+sub year  { $_[0]->{year} }
+
+# ICal requires sec, min, and hour methods
+
+sub sec  {undef}
+sub min  {undef}
+sub hour {undef}
+
+#}}}
 
 1;
 
 __END__
 
-=head1 NAME
-
-Date::ISO - an ISO 8601 date object
-
-=head1 SYNOPSIS
-
-    my $date  = Date::ISO->new($year, $month, $date) or die "Invalid date $!";
-    my $year  = $date->year;
-    my $month = $date->month;
-    my $day   = $date->day;
-
-    my $today = Date::ISO->new;
-    my $tomorrow = $today + 1;
-    print "Tomorrow's date (in ISO 8601 format) is $tomorrow.\n";
-    if ($tomorrow->year != $today->year) {
-        print "Today is New Year's Eve!\n";
-    }
-
-    if ($today > $tomorrow) {
-        die "warp in space-time continuum";
-    }
-
-    if (Date::ISO::leap_year(2000)) {
-        print "366 days in 2000\n";
-    }
-
-=head1 DESCRIPTION
-
-This module may be used to create ISO 8601 date objects.  It only deals with
-dates within the Unix epoch.  It will only allow the creation of objects for
-valid dates.  Attempting to create an invalid date will return undef.
-
-This class is not part of the ISO 8601 standard :-)
-
-=cut
-
-=head1 FACTORY METHODS
-
-=head2 new($year, $month, $day)
-
-    my $date = Date::ISO->new('1972-01-17');
-    my $otherdate = Date::ISO->new(2000, 12, 25);
-
-The new method will return a date object if the values passed in specify a
-valid date.  If an invalid date is passed, the method returns undef.
-
-=head1 FUNCTIONS
-
-=head2 leap_year
-
-    my $days_in_year_n = 365 + Date::ISO::leap_year($n);
-
-Returns 1 when passed an integer value which refers to a leap year, 0
-otherwise.  You can use this as a boolean, or just add it to 365.
-
-=head2 days_in_month
-
-    my $n = Date::ISO::days_in_month($year, $month);
-
-Returns the number of days in the specified month.
-
-=head1 INSTANCE METHODS
-
-=head2 next
-
-    my $tomorrow = $today->next;
-
-Returns an object representing tomorrow.
-
-=head2 prev
-
-    my $yesterday = $today->prev;
-
-Returns an object representing yesterday.
-
-=head2 year
-
-    my $year  = $date->year;
-
-Return the year of the date held in this date object
-
-=head2 month
-
-    my $month = $date->month;
-
-Return the month of the date held in this date object
-
-=head2 day
-
-    my $day   = $date->day;
-
-Return the day of the date held in this date object
-
-=head2 format
-
-Returns a string representing the date, in the format specified.
-If you don't pass a parameter, an ISO 8601 formatted date is returned.
-
-    my $change_date = $date->format("%d %b %y");
-    my $iso_date1 = $date->format("%Y-%m-%d");
-    my $iso_date2 = $date->format;
-
-The formatting parameter is uncannily similar to one you would pass to
-strftime(3).  This is probably because we actually do pass it to strftime to
-format the date.
-
-=head1 OPERATORS
-
-Some operators can be used with Date::ISO instances:
-
-=over 4
-
-=item * You can increment or decrement a date by a number of days using the +=
-and -= operators
-
-=item * You can construct new dates offset by a number of days using the + and -
-operators.
-
-=item * You can subtract two dates ($d1 - $d2) to find the number of days
-between them.
-
-=item * You can compare two dates using the arithmetic comparison operators.
-
-=item * You can interpolate a date instance directly into a string, in the
-format specified by ISO 8601 (eg: 2000-01-17).
-
-=back
-
 =head1 AUTHOR
 
-Marty Pauley E<lt>marty@kasei.comE<gt>
+Rich Bowen (rbowen@rcbowen.com)
 
-=head1 COPYRIGHT
+=head1 DATE
 
-Copyright (C) 2001  Kasei
+$Date: 2001/07/24 16:08:11 $
 
-This program is free software; you can redistribute it and/or modify it under
-the terms of either:
-a) the GNU General Public License as published by the Free Software Foundation;
-   either version 2 of the License, or (at your option) any later version.
-b) the Perl Artistic License.
+=head1 Additional comments
 
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE.
+For more information about this calendar, please see:
+
+http://personal.ecu.edu/mccartyr/ISOwdALG.txt
+
+http://personal.ecu.edu/mccartyr/isowdcal.html
+
+http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+
+=head1 To Do
+
+Need to flesh out test suite some more. Particularly need to test some dates
+immediately before and after the first day of the year - days in which you
+might be in a different Gregorian and ISO years.
+
+ISO date format also supports a variety of time formats. I suppose I should
+accept those as valid arguments.
+
+Need methods to output epoch time, and a variety of valid ISO date strings,
+from a Date::ISO object.
+
+=head1 Version History#{{{
+
+    $Log: ISO.pm,v $
+    Revision 1.18  2001/07/24 16:08:11  rbowen
+    perltidy
+
+    Revision 1.17  2001/04/30 13:23:35  rbowen
+    Removed AutoLoader from ISA, since it really isn't.
+
+    Revision 1.16  2001/04/29 21:31:04  rbowen
+    Added new tests, and fixed a lot of bugs in the process. Apparently the
+    inverseiso function had never actually worked, and various other functions
+    had some off-by-one problems.
+
+    Revision 1.15  2001/04/29 02:42:03  rbowen
+    New Tests.
+    Updated MANIFEST, Readme for new files, functionality
+    Fixed CVS version number in ISO.pm
+
+    Revision 1.14  2001/04/29 02:36:50  rbowen
+    Added OO interface.
+    Changed functions to accept 4-digit years and 1-based months.
 
 =cut
+#}}}
+
 
