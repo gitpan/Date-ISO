@@ -13,10 +13,10 @@ my $iso;
 # Creating with 1997-02-05 format
 
 $iso = {};
-$iso = Date::ISO->new( ISO => '1971-10-25' );
+$iso = Date::ISO->new( iso => '1971-10-25' );
 ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == '10', 'month()' );
-ok( $iso->day =='25', 'day()' );
+ok( $iso->month == 10, 'month()' );
+ok( $iso->day == 25, 'day()' );
 
 ok( $iso->iso_year == 1971, 'iso_year()' );
 ok( $iso->iso_week ==  43, 'iso_week()' );
@@ -97,7 +97,7 @@ ok( $iso->iso_week_day == 1, 'iso_week_day()' );
 # Creating with '1971-293' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971-294' );
+$iso = Date::ISO->new( ISO => '1971-431' );
 ok( $iso->year == 1971, 'year()' );
 ok( $iso->month == 10, 'month()' );
 ok( $iso->day == 25, 'day()' );
@@ -109,7 +109,7 @@ ok( $iso->iso_week_day == 1, 'iso_week_day()' );
 # Creating with '1971293' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971294' );
+$iso = Date::ISO->new( ISO => '1971431' );
 ok( $iso->year == 1971, 'year()' );
 ok( $iso->month == 10, 'month()' );
 ok( $iso->day == 25, 'day()' );

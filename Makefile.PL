@@ -8,5 +8,16 @@ WriteMakefile(
   'PREREQ_PM'    => {
       'Date::Leapyear' => 0,
       'Date::ICal'     => 0,
+      'Pod::Tests'     => 0,
+      'Test::More'     => 0,
   },
 );
+
+open(MANIFEST, "MANIFEST");
+foreach my $file (grep /\.pm$/, <MANIFEST>) {
+    chomp $file;
+    my($module) = $file =~ m|^(.*)\.pm$|;
+    $module =~ s|/|-|g;
+    system("pod2test $file t/embedded-$module.t");
+}
+
