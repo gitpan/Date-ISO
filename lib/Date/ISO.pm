@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.22 2001/11/24 16:03:11 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.24 2001/11/27 02:15:15 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.22 $')[1];
+$VERSION = (qw'$Revision: 1.24 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -86,8 +86,15 @@ sub new {    #{{{
     my %args  = @_;
     my $self;
 
-    $args{iso}   = $args{ISO}   if defined $args{ISO};   # Deprecated
-    $args{epoch} = $args{EPOCH} if defined $args{EPOCH}; # Deprecated
+# Deprecated argument form {{{
+    if (defined $args{ISO}) {
+        $args{iso} = $args{ISO};
+        warn "'ISO' is a deprecated arg. Use 'iso' instead.";
+    }
+    if (defined $args{EPOCH}) {
+        $args{epoch} = $args{EPOCH};
+        warn "'EPOCH' is a deprecated arg. Use 'epoch' instead.";
+    } # }}}
 
     # ISO date string passed in?
     if ( $args{iso} ) {
@@ -97,15 +104,14 @@ sub new {    #{{{
 
             $self = $class->SUPER::new( year => $1, 
                     month => $2, day => $3, hour => 0,
-                    min => 0, sec => 0 );
-
+                    min => 0, sec => 0, offset => 0 );
         }
 
         # 199702 format
         elsif ( $args{iso} =~ m/^(\d\d\d\d)(\d\d)$/ ) {
             
             $self = $class->SUPER::new( year => $1, month => $2,
-                day => 1, hour => 0, min => 0, sec => 0 );
+                day => 1, hour => 0, min => 0, sec => 0, offset => 0 );
         }
 
         # 1997-W06-2, 1997W062,, 1997-06-2, 1997062, 1996-06, 1997W06  formats
@@ -117,21 +123,19 @@ sub new {    #{{{
               from_iso( $1, $2, $iso_day );
 
             $self = $class->SUPER::new( year => $year, month => $month,
-                day => $day, hour => 0, min => 0, sec => 0 );
+                day => $day, hour => 0, min => 0, sec => 0,
+                offset => 0 );
 
         # Don't know what the format was
         }
         else {
             warn('Did not recognize this as valid ISO date string format');
         }
-
     }
 
     # Otherwise, just pass arguments to Date::ICal
     else {
-
         $self = $class->SUPER::new( %args );
-
     }
 
     bless $self, $class;
@@ -366,13 +370,15 @@ compatibility with former versions.
 
 1;
 
+# Documentation {{{
+
 =head1 AUTHOR
 
 Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/11/24 16:03:11 $
+$Date: 2001/11/27 02:15:15 $
 
 =head1 Additional comments
 
@@ -406,11 +412,21 @@ Creating a Date::ISO object with an ISO string, and then immediately
 getting the ISO string representation of that object, is not giving
 back what we started with. I'm not at all sure what is going on.
 
+=cut
+
+# }}}
+
 # CVS History #{{{
 
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.24  2001/11/27 02:15:15  rbowen
+    Explicitly set offset to 0 always.
+
+    Revision 1.23  2001/11/25 03:55:23  rbowen
+    Code fold. Nothing to see here.
+
     Revision 1.22  2001/11/24 16:03:11  rbowen
     Offsets must be explicitly set to 0 in order to get the right epoch
     time. See Date::ICal for details

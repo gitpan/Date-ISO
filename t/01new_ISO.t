@@ -14,107 +14,107 @@ my $iso;
 
 $iso = {};
 $iso = Date::ISO->new( iso => '1971-10-25' );
-ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 25, 'day()' );
+is( $iso->year, 1971, 'year()' );
+is( $iso->month, 10, 'month()' );
+is( $iso->day, 25, 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week ==  43, 'iso_week()' );
-ok( $iso->iso_week_day == 1, 'iso_week_day()' );
+is( $iso->iso_year, 1971, 'iso_year()' );
+is( $iso->iso_week, 43, 'iso_week()' );
+is( $iso->iso_week_day, 1, 'iso_week_day()' );
 
 # Creating with 19711025 format
 
 $iso = {};
-$iso = Date::ISO->new( ISO => '19711025' );
-ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == '10', 'month()' );
-ok( $iso->day == '25', 'day()' );
+$iso = Date::ISO->new( iso => '19711025' );
+is( $iso->year, 1971, 'year()' );
+is( $iso->month, '10', 'month()' );
+is( $iso->day, '25', 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year' );
-ok( $iso->iso_week == 43, 'iso_week' );
-ok( $iso->iso_week_day == 1, 'iso_week_day' );
+is( $iso->iso_year, 1971, 'iso_year' );
+is( $iso->iso_week, 43, 'iso_week' );
+is( $iso->iso_week_day, 1, 'iso_week_day' );
 
 # Creating with 197110 format
 
 $iso = {};
-$iso = Date::ISO->new( ISO => '197110' );
-ok( $iso->year == 1971, 'year()');
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 1, 'day()' ); # Day defaults to first of the month
+$iso = Date::ISO->new( iso => '197110' );
+is( $iso->year, 1971, 'year()');
+is( $iso->month, 10, 'month()' );
+is( $iso->day, 1, 'day()' ); # Day defaults to first of the month
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week == 39, 'iso_week()' );
-ok( $iso->iso_week_day == 5, 'iso_week_day()' );
+is( $iso->iso_year, 1971, 'iso_year()' );
+is( $iso->iso_week, 39, 'iso_week()' );
+is( $iso->iso_week_day, 5, 'iso_week_day()' );
 
 # Creating with '1971-W43' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971-W43' );
+$iso = Date::ISO->new( iso => '1971-W43' );
 is( $iso->year, 1971, 'year()');
 is( $iso->month, 10, 'month()' );
 is( $iso->day, 25, 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week == 43, 'iso_week()' );
-ok( $iso->iso_week_day == 1, 'iso_week_day()' );
+is( $iso->iso_year, 1971, 'iso_year()' );
+is( $iso->iso_week, 43, 'iso_week()' );
+is( $iso->iso_week_day, 1, 'iso_week_day()' );
 
 # Creating with '1971W43' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971W43' );
-ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 25, 'day()' );
+$iso = Date::ISO->new( iso => '1971W43' );
+is( $iso->year,1971, 'year()' );
+is( $iso->month,10, 'month()' );
+is( $iso->day,25, 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week == 43, 'iso_week()' );
-ok( $iso->iso_week_day == 1, 'iso_week_day()' );
+is( $iso->iso_year,1971, 'iso_year()' );
+is( $iso->iso_week,43, 'iso_week()' );
+is( $iso->iso_week_day,1, 'iso_week_day()' );
 
 # Creating with '1971-W43-1' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971-W43-1' );
-ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 25, 'day()' );
+$iso = Date::ISO->new( iso => '1971-W43-1' );
+is( $iso->year,1971, 'year()' );
+is( $iso->month,10, 'month()' );
+is( $iso->day,25, 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week == 43, 'iso_week()' );
-ok( $iso->iso_week_day == 1, 'iso_week_day()' );
+is( $iso->iso_year,1971, 'iso_year()' );
+is( $iso->iso_week,43, 'iso_week()' );
+is( $iso->iso_week_day,1, 'iso_week_day()' );
 
 # Creating with '1971W431' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971W431' );
-ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 25, 'day()' );
+$iso = Date::ISO->new( iso => '1971W431' );
+is( $iso->year,1971, 'year()' );
+is( $iso->month,10, 'month()' );
+is( $iso->day,25, 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week == 43, 'iso_week()' );
-ok( $iso->iso_week_day == 1, 'iso_week_day()' );
+is( $iso->iso_year,1971, 'iso_year()' );
+is( $iso->iso_week,43, 'iso_week()' );
+is( $iso->iso_week_day,1, 'iso_week_day()' );
 
 # Creating with '1971-293' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971-431' );
-ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 25, 'day()' );
+$iso = Date::ISO->new( iso => '1971-431' );
+is( $iso->year,1971, 'year()' );
+is( $iso->month,10, 'month()' );
+is( $iso->day,25, 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week == 43, 'iso_week()' );
-ok( $iso->iso_week_day == 1, 'iso_week_day()' );
+is( $iso->iso_year,1971, 'iso_year()' );
+is( $iso->iso_week,43, 'iso_week()' );
+is( $iso->iso_week_day,1, 'iso_week_day()' );
 
 # Creating with '1971293' format
 
 $iso={};
-$iso = Date::ISO->new( ISO => '1971431' );
-ok( $iso->year == 1971, 'year()' );
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 25, 'day()' );
+$iso = Date::ISO->new( iso => '1971431' );
+is( $iso->year,1971, 'year()' );
+is( $iso->month,10, 'month()' );
+is( $iso->day,25, 'day()' );
 
-ok( $iso->iso_year == 1971, 'iso_year()' );
-ok( $iso->iso_week == 43, 'iso_week()' );
-ok( $iso->iso_week_day == 1, 'iso_week_day()' );
+is( $iso->iso_year,1971, 'iso_year()' );
+is( $iso->iso_week,43, 'iso_week()' );
+is( $iso->iso_week_day,1, 'iso_week_day()' );
 

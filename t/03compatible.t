@@ -5,19 +5,19 @@ BEGIN { use_ok( 'Date::ISO' ); }
 my ($year, $week, $day, $month);
 
 ($year, $week, $day ) = iso( 1971, 10, 25 );
-ok( $year == 1971, "iso - year");
-ok( $week == 43, "iso - week" );
-ok( $day == 1, "iso - week day" );
+is( $year, 1971, "iso - year");
+is( $week, 43, "iso - week" );
+is( $day, 1, "iso - week day" );
 
 ($year, $week, $day) = iso( 2001, 4, 28);
-ok($year == 2001, "iso - year" );
-ok($week == 17, "iso - week" );
-ok( $day == 6, "iso - day" );
+is($year, 2001, "iso - year" );
+is($week, 17, "iso - week" );
+is( $day, 6, "iso - day" );
 
 ($year, $week, $day) = iso( 2001, 8, 2 );
-ok( $year == 2001, "iso - year");
-ok( $week == 31, "iso - week");
-ok( $day == 4, "iso - day");
+is( $year, 2001, "iso - year");
+is( $week, 31, "iso - week");
+is( $day, 4, "iso - day");
 
 ($year, $month, $day) = inverseiso( 2001, 31, 4 );
 is( $year, 2001, 'inverseiso - year' );
