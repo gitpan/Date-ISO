@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
   'NAME'         => 'Date::ISO',
-  'VERSION_FROM' => 'ISO.pm',      # finds $VERSION
+  'VERSION_FROM' => 'lib/Date/ISO.pm',      # finds $VERSION
   'PREREQ_PM'    => {
       'Date::Leapyear' => 0,
       'Date::ICal'     => 0,

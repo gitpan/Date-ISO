@@ -4,19 +4,11 @@ NAME
 
 SYNOPSIS
       use Date::ISO;
-      ($yearnumber, $weeknumber, $weekday) = iso($year, $month, $day);
-
-    Note that year and month here are as given by localtime, not as given by
-    a calendar. Hence, January 1, 2001 is (101, 0, 1). This is probably
-    undesired behavior, and may be changed in a future release.
-
-      ($yearnumber, $weeknumber, $weekday) = localiso(time);
-      ($year, $month, $day) = inverseiso($iso_year, $iso_week, $iso_week_day);
-
-    Or, using the object interface:
-
-      use Date::ISO qw();
-      my $iso = Date::ISO->new( ISO => $iso_date_string );
+      $iso = Date::ISO->new( iso => $iso_date_string );
+      $iso = Date::ISO->new( epoch => $epoch_time );
+      $iso = Date::ISO->new( ical => $ical_string );
+      $iso = Date::ISO->new( year => $year, month => $month,
+                             day => $day );
 
       $iso_year = $iso->iso_year;
       $year = $iso->year;
@@ -27,45 +19,25 @@ SYNOPSIS
       $month = $iso->month;
       $day = $iso->day;
 
+    And, for backward compatibility:
+
+      ($yearnumber, $weeknumber, $weekday) = iso($year, $month, $day);
+      ($yearnumber, $weeknumber, $weekday) = localiso(time);
+      ($year, $month, $day) = inverseiso($iso_year, $iso_week,
+                                         $iso_week_day);
+
 DESCRIPTION
     Convert dates between ISO and Gregorian formats.
 
-  iso
-
-            ($year, $week, $day) = iso($year, $month, $day);
-        ($year, $week, $day) = iso(2001, 4, 28); # April 28, 2001
-
-    Returns the ISO year, week, and day of week, when given the (Gregorian)
-    year, month, and day.
-
-    Note that years are full 4 digit years, and months are numbered with
-    January being 1.
-
-  inverseiso
-
-            ($year, $month, $day) = inverseiso($year, $week, $day);
-
-    Given an ISO year, week, and day, returns year, month, and day, as
-    localtime would give them to you.
-
-  localiso
-
-            ($year, $week, $day) = localiso(time);
-
-    Given a time value (epoch time) returns the ISO year, week, and day.
-
-OO interface
-    The OO interface allows you to create a date object, and determime from
-    it the various attributes in the ISO calendar (the year, week, and day
-    of that week) and in the Gregorian reckoning (the year, month, and day).
-
   new
 
-        my $iso = Date::ISO->new( ISO => $iso_date_string );
+        my $iso = Date::ISO->new( iso => $iso_date_string );
+        my $iso = Date::ISO->new( epoch = $epoch_time );
 
-    or ...
+    And, since this is a Date::ICal subclass ...
 
-        my $iso = Date::ISO->new( EPOCH = $epoch_time );
+        my $iso = Date::ISO->new( ical => $ical_string );
+        $ical = $iso->ical;
 
     Accepted ISO date string formats are:
 
@@ -83,11 +55,19 @@ OO interface
 
     Time values are not supported at this time.
 
+Backwards compatibiilty methods
+    The following functional interface is provided for backwards
+    compatibility with former versions.
+
+  iso
+
+     $iso = iso($year, $month, $day);
+
 AUTHOR
     Rich Bowen (rbowen@rcbowen.com)
 
 DATE
-    $Date: 2001/05/01 23:15:45 $
+    $Date: 2001/08/23 02:04:00 $
 
 Additional comments
     For more information about this calendar, please see:
@@ -96,9 +76,18 @@ Additional comments
 
     http://personal.ecu.edu/mccartyr/isowdcal.html
 
+    http://personal.ecu.edu/mccartyr/aboutwdc.htm
+
     http://www.cl.cam.ac.uk/~mgk25/iso-time.html
 
-To Do
+    http://www.fourmilab.ch/documents/calendar/
+
+    Finally, many many many thanks to Rick McCarty who provided me with the
+    algorithms that I'm using for conversions to and from ISO dates. All the
+    errors in previous versions of this module were entirely my fault for
+    miscopying something from his algorithm.
+
+To Do, Bugs
     Need to flesh out test suite some more. Particularly need to test some
     dates immediately before and after the first day of the year - days in
     which you might be in a different Gregorian and ISO years.
@@ -106,25 +95,7 @@ To Do
     ISO date format also supports a variety of time formats. I suppose I
     should accept those as valid arguments.
 
-    Need methods to output epoch time, and a variety of valid ISO date
-    strings, from a Date::ISO object.
-
-Version History
-        
-        Revision 1.17  2001/04/30 13:23:35  rbowen
-        Removed AutoLoader from ISA, since it really isn't.
-
-        Revision 1.16  2001/04/29 21:31:04  rbowen
-        Added new tests, and fixed a lot of bugs in the process. Apparently the
-        inverseiso function had never actually worked, and various other functions
-        had some off-by-one problems.
-
-        Revision 1.15  2001/04/29 02:42:03  rbowen
-        New Tests.
-        Updated MANIFEST, Readme for new files, functionality
-        Fixed CVS version number in ISO.pm
-
-        Revision 1.14  2001/04/29 02:36:50  rbowen
-        Added OO interface.
-        Changed functions to accept 4-digit years and 1-based months.
+    Creating a Date::ISO object with an ISO string, and then immediately
+    getting the ISO string representation of that object, is not giving back
+    what we started with. I'm not at all sure what is going on.
 

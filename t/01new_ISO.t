@@ -50,9 +50,9 @@ ok( $iso->iso_week_day == 5, 'iso_week_day()' );
 
 $iso={};
 $iso = Date::ISO->new( ISO => '1971-W43' );
-ok( $iso->year == 1971, 'year()');
-ok( $iso->month == 10, 'month()' );
-ok( $iso->day == 25, 'day()' );
+is( $iso->year, 1971, 'year()');
+is( $iso->month, 10, 'month()' );
+is( $iso->day, 25, 'day()' );
 
 ok( $iso->iso_year == 1971, 'iso_year()' );
 ok( $iso->iso_week == 43, 'iso_week()' );
