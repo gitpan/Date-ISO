@@ -1,15 +1,14 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.20 2001/08/23 02:04:00 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.21 2001/09/12 03:21:31 rbowen Exp $
 package Date::ISO;
 
 use strict;
-use warnings;
 use Exporter;
 use Date::ICal;
 
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.20 $')[1];
+$VERSION = (qw'$Revision: 1.21 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -371,7 +370,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/08/23 02:04:00 $
+$Date: 2001/09/12 03:21:31 $
 
 =head1 Additional comments
 
@@ -410,6 +409,9 @@ back what we started with. I'm not at all sure what is going on.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.21  2001/09/12 03:21:31  rbowen
+    remove warnings for 5.005 compatibility
+
     Revision 1.20  2001/08/23 02:04:00  rbowen
     Thanks to Rick McCarty, conversions from ISO to gregorian are now
     working correctly. They never worked correctly in earlier versions.
