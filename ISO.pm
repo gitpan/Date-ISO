@@ -5,7 +5,7 @@ use vars qw( $VERSION @ISA @EXPORT );
 require Exporter;
 @ISA = qw(Exporter AutoLoader);
 @EXPORT = qw( localiso iso inverseiso);
-$VERSION = '1.02';
+$VERSION = (qw'$Revision 1.14 $')[1];
 
 =head1 NAME
 
@@ -16,19 +16,42 @@ Gregorian formats.
 
   use Date::ISO;
   ($yearnumber, $weeknumber, $weekday) = iso($year, $month, $day);
+
+Note that year and month here are as given by localtime, not as given by a
+calendar. Hence, January 1, 2001 is (101, 0, 1). This is probably undesired
+behavior, and may be changed in a future release.
+
   ($yearnumber, $weeknumber, $weekday) = localiso(time);
+  ($year, $month, $day) = inverse_iso($year, $week, $day);
+
+Or, using the object interface:
+
+  use Date::ISO qw();
+  my $iso = Date::ISO->new( ISO => $iso_date_string );
+
+  $iso_year = $iso->iso_year;
+  $year = $iso->year;
+
+  $iso_week = $iso->iso_week;
+  $week_day = $iso->iso_week_day;
+
+  $month = $iso->month;
+  $day = $iso->day;
 
 =head1 DESCRIPTION
 
 Convert dates between ISO and Gregorian formats.
 
+
 =head2 iso
 
 	($year, $week, $day) = iso($year, $month, $day);
+    ($year, $week, $day) = iso(2001, 4, 28); # April 28, 2001
 
-Returns the ISO year, week and day, when given the year, month, and day,
-as returned by localtime. (That is, months are zero-based, years are
--1900.)
+Returns the ISO year, week and day, when given the year, month, and day.
+
+Note that years are full 4 digit years, and months are numbered with January
+being 1. 
 
 =cut
 
@@ -39,13 +62,15 @@ sub iso	{
 		$leap, $lastleap,
 		);
 
+    $month--; # It is convenient to have months 0-based internally
+    $day += 0;
+
 	my %doy = ( 0 => 0, 1 => 31, 2 => 59, 3 => 90,
 		4 => 120, 5 => 151, 6 => 181, 7 => 212, 8 => 243,
 		9 => 273, 10 => 304, 11 => 334 );
 	$doy = $doy{$month} + $day;
 	$leap = isleap($year);
 	$lastleap = isleap($year - 1);
-	$year += 1900;
 	$doy++ if ($leap && $month > 1);
 	$yy = ($year - 1) % 100;
 	$c = ($year - 1) - $yy;
@@ -109,7 +134,7 @@ sub inverseiso	{
 	} else {
 		$doy += $weekday + (8 - $janone);
 	}
-	if (isleap($yearnumber - 1900))	{
+	if (isleap($yearnumber))	{
 		$eoy = 366;
 	} else {
 		$eoy = 365;
@@ -123,7 +148,7 @@ sub inverseiso	{
 	}
 	if ($year == $yearnumber)	{
 		my @month = (31, 28, 31, 30, 31,30, 31, 31, 30, 31, 30, 31);
-		$month[1] = 29 if (isleap($year - 1900));
+		$month[1] = 29 if (isleap($year));
 		my $h = 0;
 		$month=0;
 		for my $days (@month)	{
@@ -134,6 +159,7 @@ sub inverseiso	{
 		$month--;
 		$day = $doy - ($h - $month[$month]);
 	}
+
 	return ($year, $month, $day);
 }
 
@@ -148,17 +174,128 @@ Given a time value (epoch time) returns the ISO year, week, and day.
 sub localiso	{
 	my ($datetime) = @_;
 	$datetime ||= time;
-	my ($year, $month, $day) = (localtime($datetime))[5,4,3];
-	return iso($year, $month, $day);
+	my ($day, $month, $year) = (localtime($datetime))[3,4,5];
+	return iso($year + 1900, $month + 1, $day);
 }
 
 sub isleap	{
 	my ($year) = @_;
-	$year += 1900;
 	return 1 if $year%4==0;
 	return 1 if ($year%4==0 && !$year%100);
 	return 0;
 }
+
+=head1 OO interface
+
+The OO interface allows you to create a date object, and determime from it the
+various attributes in the ISO calendar (the year, week, and day of that week)
+and in the Gregorian reckoning (the year, month, and day).
+
+=head2 new
+
+    my $iso = Date::ISO->new( ISO => $iso_date_string;
+
+or ...
+
+    my $iso = Date::ISO->new( EPOCH = $epoch_time );
+
+Accepted ISO date string formats are:
+
+    1997-02-05 (Feb 5, 1997)
+    19970205 (Same)
+    199702 (February 1997)
+    1997-W06 (6th week, 1997)
+    1997W06 (Same)
+    1997-W06-2 (6th week, 2nd day)
+    1997W062 (Same as above)
+    1997-035 (35th day of 1997)
+    1997035 (Same as above)
+
+2-digit representations of the year are not supported at this time.
+
+Time values are not supported at this time.
+
+=cut
+
+sub new {
+    my $class = shift;
+    my %args = @_;
+
+    my %date;
+    
+    # ISO date string passed in?
+    if ($args{ISO} ) {
+
+        # 1997-02-05 or 19970205 formats
+        if ( $args{ISO} =~ m/^(\d\d\d\d)-?(\d\d)-?(\d\d$)/ ) {
+
+            @date{ '_year', '_month', '_day' } = ( $1, $2, $3 );
+
+            @date{ '_iso_year', '_iso_week', '_iso_week_day' } = 
+                iso( $date{_year}, $date{_month}, $date{_day} );
+
+        # 199702 format
+        } elsif ( $args{ISO} =~ m/^(\d\d\d\d)(\d\d)$/ ) {
+            @date{ '_year', '_month' } = ( $1, $2 );
+
+            @date{ '_iso_year', '_iso_week', '_iso_week_day' } = 
+                iso( $date{_year}, $date{_month}, 1 );
+
+        # 1997-W06-2 or 1997W062 format
+        } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?W(\d\d)-?(\d)$/ ) {
+            @date{ '_iso_year', '_iso_week', '_iso_week_day' } 
+                = ( $1, $2, $3);
+            
+            @date{ '_year', '_month', '_day' } = inverse_iso( $date{_iso_year},
+                $date{_iso_week}, $date{_iso_week_day} );
+
+        # 1997-W06 or 1997W06 format
+        } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?W(\d\d)$/ ) {
+            @date{ '_iso_year', '_iso_week' } = ( $1, $2 );
+
+            @date{ '_year', '_month', '_day' } = 
+                inverse_iso( $date{_iso_year}, $date{_iso_week}, 1 );
+
+        # 1997-035 or 1997035 format
+        } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?(\d\d\d)$/ ) {
+            
+            $date{_iso_year} = $1;
+            $date{_iso_week} = int ( $2 / 7 );
+            $date{_iso_week_day} = $2 % 7;
+
+            @date{ '_year', '_month', '_day' } = inverse_iso( 
+                $date{_iso_year}, $date{_iso_week}, $date{_iso_week_day} );
+
+        # Don't know what the format was
+        } else {
+            warn('Did not recognize this as valid ISO date string format');
+        }
+
+    } elsif ( $args{EPOCH} ) {
+    
+        @date{ '_day', '_month', '_year' } = 
+            ( localtime( $args{EPOCH} ))[3, 4, 5];
+        $date{_month}++;
+        $date{_year}+=1900;
+
+        @date{ '_iso_year', '_iso_week', '_iso_week_day' } = 
+            localiso( $args{EPOCH} );
+        
+    } else {
+        warn('Dude. Read the docs. Sheesh.');
+    }
+
+    my $self = bless \%date, $class;
+    return $self;
+}
+
+sub iso_year     { $_[0]->{_iso_year} }
+sub iso_week     { $_[0]->{_iso_week} }
+sub iso_week_day { $_[0]->{_iso_week_day} }
+
+sub day   { $_[0]->{_day} }
+sub month { $_[0]->{_month} }
+sub year  { $_[0]->{_year} }
 
 1;
 
@@ -166,7 +303,11 @@ __END__
 
 =head1 AUTHOR
 
-Rich Bowen <rbowen@rcbowen.com>
+Rich Bowen (rbowen@rcbowen.com)
+
+=head1 DATE
+
+$Date: 2001/04/29 02:42:03 $
 
 =head1 Additional comments
 
@@ -176,4 +317,31 @@ http://personal.ecu.edu/mccartyr/ISOwdALG.txt
 
 http://personal.ecu.edu/mccartyr/isowdcal.html
 
+http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+
+=head1 To Do
+
+Need to flesh out test suite some more. Particularly need to test some dates
+immediately before and after the first day of the year - days in which you
+might be in a different Gregorian and ISO years.
+
+ISO date format also supports a variety of time formats. I suppose I should
+accept those as valid arguments.
+
+Need methods to output epoch time, and a variety of valid ISO date strings,
+from a Date::ISO object.
+
+=head1 Version History
+
+    $Log: ISO.pm,v $
+    Revision 1.15  2001/04/29 02:42:03  rbowen
+    New Tests.
+    Updated MANIFEST, Readme for new files, functionality
+    Fixed CVS version number in ISO.pm
+
+    Revision 1.14  2001/04/29 02:36:50  rbowen
+    Added OO interface.
+    Changed functions to accept 4-digit years and 1-based months.
+
 =cut
+
