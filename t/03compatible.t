@@ -24,14 +24,15 @@ is( $year, 2001, 'inverseiso - year' );
 is( $month, 8, 'inverseiso - month' );
 is( $day,  2, 'inverseiso - day' );
 
-$iso = Date::ISO->new( iso => '2001-W31-4' );
-is($iso->iso ,  '2001-W31-4', "Get what we started with?");
+$iso = Date::ISO->new( iso => '2001-W31-4', offset => 0 );
+is($iso->iso ,  '2001-W31-4', 
+    "Get what we started with.");
 
 ( $year, $month, $day ) = inverseiso( 2001, 17, 6 );
 is( $year , 2001, "inverseiso - year" );
 is( $month, 4, "inverseiso - month" );
 is( $day, 28, "inverseiso - day" );
 
-$iso = Date::ISO->new( iso => '2001-W17-6' );
+$iso = Date::ISO->new( iso => '2001-W17-6', offset => 0 );
 is( $iso->iso, '2001-W17-6', "Get what we started with?");
 

@@ -11,6 +11,9 @@ WriteMakefile(
       'Test::More'     => 0,
       'Test::Inline'     => 0,
   },
+  'realclean' => {
+      FILES => 't/embedded-*'
+  },
 );
 
 open(MANIFEST, "MANIFEST");
