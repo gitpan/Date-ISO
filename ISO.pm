@@ -5,7 +5,7 @@ use vars qw( $VERSION @ISA @EXPORT );
 require Exporter;
 @ISA = qw(Exporter AutoLoader);
 @EXPORT = qw( localiso iso inverseiso);
-$VERSION = (qw'$Revision 1.14 $')[1];
+$VERSION = (qw'$Revision: 1.16 $')[1];
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ calendar. Hence, January 1, 2001 is (101, 0, 1). This is probably undesired
 behavior, and may be changed in a future release.
 
   ($yearnumber, $weeknumber, $weekday) = localiso(time);
-  ($year, $month, $day) = inverse_iso($year, $week, $day);
+  ($year, $month, $day) = inverseiso($iso_year, $iso_week, $iso_week_day);
 
 Or, using the object interface:
 
@@ -48,7 +48,8 @@ Convert dates between ISO and Gregorian formats.
 	($year, $week, $day) = iso($year, $month, $day);
     ($year, $week, $day) = iso(2001, 4, 28); # April 28, 2001
 
-Returns the ISO year, week and day, when given the year, month, and day.
+Returns the ISO year, week, and day of week, when given the (Gregorian)
+year, month, and day.
 
 Note that years are full 4 digit years, and months are numbered with January
 being 1. 
@@ -101,11 +102,13 @@ sub iso	{
 		}
 	}
 	return ($yearnumber, $weeknumber, $weekday);
+    # The ISO year day is apparently $doy - $janone + 1, but I'm not certain.
+    # I'll have to think about this a little more.
 }
 		
 =head2 inverseiso
 
-	($year, $month, $day) = inverse_iso($year, $week, $day);
+	($year, $month, $day) = inverseiso($year, $week, $day);
 
 Given an ISO year, week, and day, returns year, month, and day, as
 localtime would give them to you.
@@ -117,8 +120,8 @@ sub inverseiso	{
 	my ($yy, $c, $g, $janone, $eoy,
 		$year, $month, $day, $doy,
 		);
-	$yy = ($year - 1) % 100;
-	$c = ($year - 1) - $yy;
+	$yy = ($yearnumber - 1) % 100;
+	$c = ($yearnumber - 1) - $yy;
 	$g = $yy + int($yy / 4);
 	$janone = 1 + (((( int($c / 100) % 4) * 5) + $g) % 7);
 	if (($weeknumber == 1) && ($janone < 5) && ($weekday < $janone))	{
@@ -156,8 +159,8 @@ sub inverseiso	{
 			$h += $days;
 			$month++;
 		}
-		$month--;
-		$day = $doy - ($h - $month[$month]);
+		# $month--;
+		$day = $doy - ($h - $month[$month]) + 1;
 	}
 
 	return ($year, $month, $day);
@@ -193,7 +196,7 @@ and in the Gregorian reckoning (the year, month, and day).
 
 =head2 new
 
-    my $iso = Date::ISO->new( ISO => $iso_date_string;
+    my $iso = Date::ISO->new( ISO => $iso_date_string );
 
 or ...
 
@@ -237,6 +240,7 @@ sub new {
         # 199702 format
         } elsif ( $args{ISO} =~ m/^(\d\d\d\d)(\d\d)$/ ) {
             @date{ '_year', '_month' } = ( $1, $2 );
+            $date{_day} = 1;
 
             @date{ '_iso_year', '_iso_week', '_iso_week_day' } = 
                 iso( $date{_year}, $date{_month}, 1 );
@@ -246,24 +250,25 @@ sub new {
             @date{ '_iso_year', '_iso_week', '_iso_week_day' } 
                 = ( $1, $2, $3);
             
-            @date{ '_year', '_month', '_day' } = inverse_iso( $date{_iso_year},
+            @date{ '_year', '_month', '_day' } = inverseiso( $date{_iso_year},
                 $date{_iso_week}, $date{_iso_week_day} );
 
         # 1997-W06 or 1997W06 format
         } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?W(\d\d)$/ ) {
             @date{ '_iso_year', '_iso_week' } = ( $1, $2 );
+            $date{_iso_week_day} = 1;
 
             @date{ '_year', '_month', '_day' } = 
-                inverse_iso( $date{_iso_year}, $date{_iso_week}, 1 );
+                inverseiso( $date{_iso_year}, $date{_iso_week}, 1 );
 
         # 1997-035 or 1997035 format
         } elsif ( $args{ISO} =~ m/^(\d\d\d\d)-?(\d\d\d)$/ ) {
             
             $date{_iso_year} = $1;
-            $date{_iso_week} = int ( $2 / 7 );
-            $date{_iso_week_day} = $2 % 7;
+            $date{_iso_week} = int ( $2 / 7 ) + 1;
+            $date{_iso_week_day} = ( $2 % 7 ) + 1;
 
-            @date{ '_year', '_month', '_day' } = inverse_iso( 
+            @date{ '_year', '_month', '_day' } = inverseiso( 
                 $date{_iso_year}, $date{_iso_week}, $date{_iso_week_day} );
 
         # Don't know what the format was
@@ -307,7 +312,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/04/29 02:42:03 $
+$Date: 2001/04/29 21:31:04 $
 
 =head1 Additional comments
 
@@ -334,6 +339,11 @@ from a Date::ISO object.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.16  2001/04/29 21:31:04  rbowen
+    Added new tests, and fixed a lot of bugs in the process. Apparently the
+    inverseiso function had never actually worked, and various other functions
+    had some off-by-one problems.
+
     Revision 1.15  2001/04/29 02:42:03  rbowen
     New Tests.
     Updated MANIFEST, Readme for new files, functionality
