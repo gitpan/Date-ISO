@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.29 2002/11/08 12:57:28 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.30 2003/01/21 15:36:59 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.29 $')[1];
+$VERSION = (qw'$Revision: 1.30 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -234,7 +234,7 @@ sub to_iso {
        } else {
            $i = 365;
        }
-       if ( ($i = $doy) < (4 - $weekday) ) {
+       if ( ($i - $doy) < (4 - $weekday) ) {
            $year_no = $y + 1;
            $week_no = 1;
        } else {
@@ -397,7 +397,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2002/11/08 12:57:28 $
+$Date: 2003/01/21 15:36:59 $
 
 =head1 Additional comments
 
@@ -440,6 +440,9 @@ back what we started with. I'm not at all sure what is going on.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.30  2003/01/21 15:36:59  rbowen
+    Patch submitted by Winifred Plapper for a stupid typo.
+
     Revision 1.29  2002/11/08 12:57:28  rbowen
     Patch by Martijn van Beers to make it possible to construct objects with
     a week number and week day, as per the spec.

@@ -4,16 +4,15 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
   'NAME'         => 'Date::ISO',
-  'VERSION_FROM' => 'lib/Date/ISO.pm',      # finds $VERSION
+  'VERSION_FROM' => 'lib/Date/ISO.pm',    # finds $VERSION
   'PREREQ_PM'    => {
       'Date::Leapyear' => 0,
       'Date::ICal'     => '1.54',
       'Test::More'     => 0,
-      'Test::Inline'     => 0,
+      'Test::Inline'   => 0,
+      'Memoize'        => 0,
   },
-  'realclean' => {
-      FILES => 't/embedded-*'
-  },
+  'realclean' => { FILES => 't/embedded-*' },
 );
 
 open(MANIFEST, "MANIFEST");
