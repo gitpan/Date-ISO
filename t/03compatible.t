@@ -27,6 +27,7 @@ is( $day,  2, 'inverseiso - day' );
 $iso = Date::ISO->new( iso => '2001-W31-4', offset => 0 );
 is($iso->iso ,  '2001-W31-4', 
     "Get what we started with.");
+is( $iso->offset, 0, "Is the offset what we asked for?");
 
 ( $year, $month, $day ) = inverseiso( 2001, 17, 6 );
 is( $year , 2001, "inverseiso - year" );
@@ -35,4 +36,5 @@ is( $day, 28, "inverseiso - day" );
 
 $iso = Date::ISO->new( iso => '2001-W17-6', offset => 0 );
 is( $iso->iso, '2001-W17-6', "Get what we started with?");
+is( $iso->offset, 0, "Is the offset what we asked for?");
 

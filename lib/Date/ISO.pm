@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.25 2001/11/27 02:44:43 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.26 2001/11/28 22:36:42 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.25 $')[1];
+$VERSION = (qw'$Revision: 1.26 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -105,7 +105,7 @@ sub new {    #{{{
 
             $self = $class->SUPER::new( year => $1, 
                     month => $2, day => $3, hour => 0,
-                    min => 0, sec => 0, offset => $args{offset} );
+                    min => 0, sec => 0, offset => $offset );
         }
 
         # 199702 format
@@ -113,7 +113,7 @@ sub new {    #{{{
             
             $self = $class->SUPER::new( year => $1, month => $2,
                 day => 1, hour => 0, min => 0, sec => 0,
-                offset => $args{offset} );
+                offset => $offset );
         }
 
         # 1997-W06-2, 1997W062,, 1997-06-2, 1997062, 1996-06, 1997W06  formats
@@ -126,7 +126,7 @@ sub new {    #{{{
 
             $self = $class->SUPER::new( year => $year, month => $month,
                 day => $day, hour => 0, min => 0, sec => 0,
-                offset => $args{offset} );
+                offset => $offset );
 
         # Don't know what the format was
         }
@@ -380,7 +380,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/11/27 02:44:43 $
+$Date: 2001/11/28 22:36:42 $
 
 =head1 Additional comments
 
@@ -423,6 +423,10 @@ back what we started with. I'm not at all sure what is going on.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.26  2001/11/28 22:36:42  rbowen
+    Jesse's patch to make offsets work as passed in, rather than setting to
+    0.
+
     Revision 1.25  2001/11/27 02:44:43  rbowen
     If an offset is not provided, explicitly set to 0. We are dealing with
     dates, not times.
