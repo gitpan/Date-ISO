@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.27 2001/11/29 18:03:16 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.28 2002/01/21 02:13:57 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.27 $')[1];
+$VERSION = (qw'$Revision: 1.28 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -56,6 +56,11 @@ Convert dates between ISO and Gregorian formats.
     my $iso = Date::ISO->new( iso => $iso_date_string );
     my $iso = Date::ISO->new( epoch = $epoch_time );
 
+
+Set the time to 2:30:25 on the date specified in $iso_date_string
+    my $iso = Date::ISO->new( iso => $iso_date_string, hour => 2, min => 30,       sec => 25 );
+
+
 And, since this is a Date::ICal subclass ...
 
     my $iso = Date::ISO->new( ical => $ical_string );
@@ -75,8 +80,6 @@ Accepted ISO date string formats are:
 
 2-digit representations of the year are not supported at this time.
 
-Time values are not supported at this time.
-
 =cut
 
 # }}}
@@ -85,8 +88,13 @@ Time values are not supported at this time.
 
 sub new {
     my $class = shift;
-    my %args  = @_;
-    my $offset = $args{offset} || 0;
+    my %args  = ( day => 0,
+                  hour => 0,
+                  min => 0,
+                  sec => 0,
+                  offset => 0,
+                  @_);
+    my $offset = $args{offset};
     my $self;
 
     # Deprecated argument form {{{
@@ -106,8 +114,8 @@ sub new {
         if ( $args{iso} =~ m/^(\d\d\d\d)-?(\d\d)-?(\d\d$)/ ) {
 
             $self = $class->SUPER::new( year => $1, 
-                    month => $2, day => $3, hour => 0,
-                    min => 0, sec => 0, offset => $offset );
+                    month => $2, day => $3, hour => $args{hour},
+                    min => $args{min}, sec => $args{sec}, offset => $offset );
         }
 
         # 199702 format
@@ -127,7 +135,7 @@ sub new {
               from_iso( $1, $2, $iso_day );
 
             $self = $class->SUPER::new( year => $year, month => $month,
-                day => $day, hour => 0, min => 0, sec => 0,
+                day => $day, hour => $args{hour}, min => $args{min}, sec => $args{sec},
                 offset => $offset );
 
         # Don't know what the format was
@@ -382,7 +390,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2001/11/29 18:03:16 $
+$Date: 2002/01/21 02:13:57 $
 
 =head1 Additional comments
 
@@ -425,6 +433,9 @@ back what we started with. I'm not at all sure what is going on.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.28  2002/01/21 02:13:57  rbowen
+    Patch from Jesse Vincent, to permit the setting of times in ISO dates.
+
     Revision 1.27  2001/11/29 18:03:16  rbowen
     If offsets are not specified, use GMT. This fixes a problem that has
     been in the last several releases. Need to add additional tests to test
