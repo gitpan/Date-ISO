@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.28 2002/01/21 02:13:57 rbowen Exp $
+#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.29 2002/11/08 12:57:28 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.28 $')[1];
+$VERSION = (qw'$Revision: 1.29 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -30,8 +30,9 @@ Gregorian formats.
   $iso = Date::ISO->new( ical => $ical_string );
   $iso = Date::ISO->new( year => $year, month => $month,
                          day => $day );
+  $iso = Date::ISO->new( year => $year, week => $week,
+                         weekday => $weekday );
 
-  $iso_year = $iso->iso_year;
   $year = $iso->year;
 
   $iso_week = $iso->iso_week;
@@ -147,6 +148,12 @@ sub new {
 
     # Otherwise, just pass arguments to Date::ICal
     else {
+	# year/week/weekday args passed in?
+	if ( defined $args{week}) {
+	    @args{qw(year month day)} = 
+		inverseiso($args{year}, $args{week}, $args{weekday});
+	}
+
         $self = $class->SUPER::new( %args, offset => $offset );
     }
 
@@ -390,7 +397,7 @@ Rich Bowen (rbowen@rcbowen.com)
 
 =head1 DATE
 
-$Date: 2002/01/21 02:13:57 $
+$Date: 2002/11/08 12:57:28 $
 
 =head1 Additional comments
 
@@ -433,6 +440,10 @@ back what we started with. I'm not at all sure what is going on.
 =head1 Version History
 
     $Log: ISO.pm,v $
+    Revision 1.29  2002/11/08 12:57:28  rbowen
+    Patch by Martijn van Beers to make it possible to construct objects with
+    a week number and week day, as per the spec.
+
     Revision 1.28  2002/01/21 02:13:57  rbowen
     Patch from Jesse Vincent, to permit the setting of times in ISO dates.
 
