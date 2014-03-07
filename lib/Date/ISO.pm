@@ -1,4 +1,4 @@
-#$Header: /home/cvs/date-iso/lib/Date/ISO.pm,v 1.30 2003/01/21 15:36:59 rbowen Exp $
+#$Header: /cvsroot/date-iso/lib/Date/ISO.pm,v 1.30 2003/01/21 15:36:59 rbowen Exp $
 package Date::ISO;
 
 use strict;
@@ -8,7 +8,7 @@ use Date::ICal;
 use vars qw( $VERSION @ISA @EXPORT );
 
 @ISA = qw( Exporter Date::ICal );
-$VERSION = (qw'$Revision: 1.30 $')[1];
+$VERSION = (qw'$Revision: 1.31 $')[1];
 
 @EXPORT = qw(iso inverseiso localiso);
 
@@ -35,11 +35,12 @@ Gregorian formats.
 
   $year = $iso->year;
 
-  $iso_week = $iso->iso_week;
-  $week_day = $iso->iso_week_day;
+  $iso_year = $iso->iso_year()
+  $iso_week = $iso->iso_week();
+  $week_day = $iso->iso_week_day();
 
-  $month = $iso->month;
-  $day = $iso->day;
+  $month = $iso->month();
+  $day = $iso->day();
 
 And, for backward compatibility:
 
